@@ -15,7 +15,7 @@
 #include "utils.h"
 
 char *app_name = "kpf";
-extern uint64_t mac_proc_check_get_task_rel;
+extern uint32_t mac_proc_check_get_task_tramp;
 extern size_t mac_proc_check_get_task_shc_size;
 extern uint32_t mac_proc_check_get_task_shc;
 
@@ -201,7 +201,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "failed to find kernel text!\n");
         return 1;
     }
-    uint32_t *text_sect = (uint32_t *)kc_buf;
     uint32_t *tfp = find_tfp(text_sect, text_size);
     if (!tfp) {
         fprintf(stderr, "Failed to find task_for_pid!\n");
@@ -240,12 +239,14 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "Failed to find mac_proc_check_get_task!\n");
         return 1;
     }
+    printf("mac_proc_check_get_task: 0x%lx\n", (uintptr_t)mac_proc_check_get_task - (uintptr_t)kc_buf);
     uint32_t *shc_area = find_shellcode_area(text_sect, text_size, mac_proc_check_get_task_shc_size);
     if (!shc_area) {
         fprintf(stderr, "Failed to find %zu bytes for shellcode!\n", mac_proc_check_get_task_shc_size);
         return 1;
     }
-    mac_proc_check_get_task_rel = (uintptr_t)mac_proc_check_get_task - (uintptr_t)shc_area + sizeof(uint32_t);
+    uintptr_t tramp_offset = (uintptr_t)&mac_proc_check_get_task_tramp - (uintptr_t)&mac_proc_check_get_task_shc;
+    mac_proc_check_get_task_tramp = arm64_rel_branch((uintptr_t)mac_proc_check_get_task - (uintptr_t)shc_area - tramp_offset + sizeof(uint32_t));
     memcpy(shc_area, &mac_proc_check_get_task_shc, mac_proc_check_get_task_shc_size);
     *mac_proc_check_get_task = arm64_rel_branch((int32_t)((uintptr_t)shc_area - (uintptr_t)mac_proc_check_get_task));
     free(kc_buf);

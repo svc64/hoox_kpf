@@ -14,7 +14,7 @@ _mac_proc_check_get_task_shc:
 _mac_proc_check_get_task_tramp:
     nop
 _get_task_allow:
-    mov w0, 1
+    mov w0, 0
     retab
 _mac_proc_check_get_task_shc_end:
 

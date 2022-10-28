@@ -93,10 +93,9 @@ Finds MAC related functions
  mov x19, x2
  mov x20, x1
  mov x21, x0
- * (max 40)
- cmp w*, #0xb
- ccmp w*, #0xb, #4, ne
- */
+ * (max 6)
+ cmp w2, #0x3
+*/
 uint32_t *find_mac_func(uint32_t *start, size_t size) {
     uint32_t *ins = start;
     uint32_t *ins_end = start + size / sizeof(uint32_t);
@@ -108,9 +107,8 @@ uint32_t *find_mac_func(uint32_t *start, size_t size) {
                 if (*ins++ == 0xaa0203f3 /* mov x19, x2 */ && IN_BOUNDS(ins, start, size) &&
                     *ins++ == 0xaa0103f4 /* mov x20, x1 */ && IN_BOUNDS(ins, start, size) &&
                     *ins++ == 0xaa0003f5 /* mov x21, x0 */ && IN_BOUNDS(ins, start, size)) {
-                    for (int x = 0; x < 40 && ins < ins_end; x++) {
-                        if ((*ins++ & 0xfffffc1f) == 0x71002c1f /* cmp w*, #0xb */ && IN_BOUNDS(ins, start, size) &&
-                            (*ins++ & 0xfffffc3f) == 0x7a4b1804 /* ccmp w*, #0xb, #4, ne */ && IN_BOUNDS(ins, start, size)) {
+                    for (int x = 0; x < 6 && ins < ins_end; x++) {
+                        if (*ins++ == 0x71000c5f /* cmp w2, #0x3 */ && IN_BOUNDS(ins, start, size)) {
                             return mac_proc_check_get_task;
                         }
                     }
@@ -203,11 +201,13 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "failed to find kernel text!\n");
         return 1;
     }
+    uint32_t *text_sect = (uint32_t *)kc_buf;
     uint32_t *tfp = find_tfp(text_sect, text_size);
     if (!tfp) {
         fprintf(stderr, "Failed to find task_for_pid!\n");
         return 1;
     }
+    printf("task_for_pid: 0x%lx\n", (uintptr_t)tfp - (uintptr_t)kc_buf);
     uint32_t *tfp_end = tfp;
     uint32_t *mac_proc_check_get_task = NULL;
     while (*++tfp_end != 0xd65f0fff /* retab */);

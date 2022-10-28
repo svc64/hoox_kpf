@@ -201,7 +201,6 @@ int main(int argc, char *argv[]) {
         fprintf(stderr, "failed to find kernel text!\n");
         return 1;
     }
-    uint32_t *text_sect = (uint32_t *)kc_buf;
     uint32_t *tfp = find_tfp(text_sect, text_size);
     if (!tfp) {
         fprintf(stderr, "Failed to find task_for_pid!\n");

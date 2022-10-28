@@ -107,6 +107,12 @@ uint32_t *find_mac_func(uint32_t *start, size_t size) {
                 if (*ins++ == 0xaa0203f3 /* mov x19, x2 */ && IN_BOUNDS(ins, start, size) &&
                     *ins++ == 0xaa0103f4 /* mov x20, x1 */ && IN_BOUNDS(ins, start, size) &&
                     *ins++ == 0xaa0003f5 /* mov x21, x0 */ && IN_BOUNDS(ins, start, size)) {
+                    for (int x = 0; x < 40 && ins < ins_end && IN_BOUNDS(ins + 1, start, size); x++) {
+                        if ((ins[x] & 0xfffffc1f) == 0x71002c1f /* cmp w*, #0xb */ &&
+                            (ins[x + 1] & 0xfffffc3f) == 0x7a4b1804 /* ccmp w*, #0xb, #4, ne */) {
+                                return mac_proc_check_get_task;
+                            }
+                    }
                     for (int x = 0; x < 6 && ins < ins_end; x++) {
                         if (*ins++ == 0x71000c5f /* cmp w2, #0x3 */ && IN_BOUNDS(ins, start, size)) {
                             return mac_proc_check_get_task;

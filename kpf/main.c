@@ -88,13 +88,20 @@ uint32_t *getKCText(void *kc, size_t kc_size, size_t *out_size) {
 
 /*
 Finds MAC related functions
+Search for:
  pacibsp
  * (max 20)
  mov x19, x2
  mov x20, x1
  mov x21, x0
+
+And:
  * (max 6)
  cmp w2, #0x3
+Or:
+ * (max 40)
+ cmp w*, #0xb
+ ccmp w*, #0xb, #4, ne
 */
 uint32_t *find_mac_func(uint32_t *start, size_t size) {
     uint32_t *ins = start;
